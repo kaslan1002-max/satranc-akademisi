@@ -1,0 +1,105 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>♞ Satranç Akademi</title><style>
+:root{--bg:#0f1220;--card:#181c30;--ink:#eef0ff;--mut:#9aa3c7;--ac:#f5b942;--lt:#ecd9b0;--dk:#a8794f;--ok:#4ade80;--bad:#f87171}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,sans-serif;background:radial-gradient(circle at 20% 0,#232a52,var(--bg));color:var(--ink);min-height:100vh}
+header{display:flex;gap:12px;align-items:center;padding:14px 22px;flex-wrap:wrap}h1{margin:0;font-size:22px;flex:1}h1 span{color:var(--ac)}
+nav button,.b{background:var(--card);color:var(--ink);border:1px solid #2d3358;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:14px}
+nav button.on,.b.pri{background:var(--ac);color:#1a1405;border-color:var(--ac);font-weight:700}.b:hover,nav button:hover{filter:brightness(1.15)}
+main{display:grid;grid-template-columns:260px minmax(300px,560px) 1fr;gap:20px;padding:0 22px 30px;max-width:1300px;margin:auto}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid #2d3358;border-radius:16px;padding:16px}
+#list{max-height:78vh;overflow:auto}#list h4{margin:14px 0 6px;color:var(--ac);font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+#list div.it{padding:8px 10px;border-radius:8px;cursor:pointer;font-size:14px;color:var(--mut)}#list div.it:hover,#list div.it.on{background:#252b4d;color:var(--ink)}
+#board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border-radius:10px;overflow:hidden;box-shadow:0 20px 50px #0009;user-select:none}
+.s{position:relative;display:flex;align-items:center;justify-content:center;font-size:min(8.2vw,52px);cursor:pointer;line-height:1}
+.s.l{background:var(--lt)}.s.d{background:var(--dk)}.s.sel{background:#f5d76e!important}.s.last{box-shadow:inset 0 0 0 100px #f5b94255}.s.chk{background:#f87171!important}
+.s.mv::after{content:"";width:28%;height:28%;border-radius:50%;background:#0006;position:absolute}.s.mv.cp::after{width:86%;height:86%;background:none;border:5px solid #0006}
+.w{color:#fff;text-shadow:0 0 2px #000,0 0 2px #000,0 1px 3px #000}.k{color:#1a1a22;text-shadow:0 0 1px #fff8}
+.co{position:absolute;font-size:10px;font-weight:700;opacity:.6;color:#222}.co.r{left:2px;top:1px}.co.f{right:3px;bottom:1px}
+#msg{margin-top:12px;min-height:44px;font-weight:600}.ok{color:var(--ok)}.bad{color:var(--bad)}
+h2{margin:0 0 8px}p{line-height:1.6;color:#d3d8f5}.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center}
+select{background:#0f1220;color:var(--ink);border:1px solid #2d3358;padding:8px;border-radius:8px}
+#promo{display:none;position:fixed;inset:0;background:#000a;align-items:center;justify-content:center;z-index:9}#promo div{background:var(--card);padding:20px;border-radius:14px;display:flex;gap:10px}#promo button{font-size:42px;background:#fff2;border:0;border-radius:10px;padding:6px 14px;cursor:pointer}
+#hero{position:fixed;inset:0;z-index:20;background:radial-gradient(circle at 50% 20%,#2c3566,#0b0d19);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px}#hero h1{font-size:44px;flex:none}#hero .big{font-size:20px;padding:16px 34px}#hero .k{font-size:90px;text-shadow:0 10px 40px #f5b94299}
+#moves{font-family:ui-monospace,monospace;font-size:13px;color:var(--mut);max-height:140px;overflow:auto}
+</style></head><body>
+<header><h1>♞ Satranç <span>Akademi</span></h1><nav><button id="n-ders" class="on">📚 Dersler</button><button id="n-bulmaca">🧩 Bulmacalar</button><button id="n-oyna">🎲 Oyna (8 Oyun Türü)</button></nav></header>
+<main><div class="card" id="list"></div>
+<div><div id="board"></div><div id="msg"></div></div>
+<div class="card" id="info"></div></main>
+<div id="hero"><div class="k">♞</div><h1>Satranç <span>Akademi</span></h1><p>Sıfırdan ustalığa dersler, bulmacalar ve 8 farklı satranç oyunu — bilgisayara karşı.</p><button class="b pri big" onclick="go('ders')">▶ Başlat: Öğrenmeye Başla</button><button class="b big" onclick="go('oyna')">🎲 Bilgisayara Karşı Oyna</button><button class="b" onclick="go('bulmaca')">🧩 Bulmacalar</button></div>
+<div id="promo"><div></div></div>
+<script src="engine.js"></script><script>
+const C=Chess,$=id=>document.getElementById(id);
+const G={K:'♚',Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟'};
+const FREE='Taşa tıkla, gidebileceği kareleri gör; istediğin gibi dene (tahta her hamleden sonra sıranı korur).';
+const L=[
+['1 · Temel Kurallar','Tahta ve Dizilim','Satranç 8×8 tahtada, her oyuncunun 16 taşıyla oynanır: 8 piyon, 2 kale, 2 at, 2 fil, 1 vezir, 1 şah. Beyaz her zaman ilk oynar. Her oyuncunun sağ alt köşesi açık (beyaz) renkli kare olmalı. Vezir kendi rengindeki kareye durur.',C.START,[]],
+['1 · Temel Kurallar','Piyon','Piyon ileri gider, çapraz yer. İlk hamlede 1 veya 2 kare ilerleyebilir. Geri gidemez. Önündeki taşı yiyemez! Görev: e2 piyonuyla d3\'teki siyah piyonu ye.','8/8/8/8/8/3p4/4P3/8 w - - 0 1',['e2d3']],
+['1 · Temel Kurallar','Kale','Kale düz (yatay/dikey) istediği kadar kare gider. Değeri: 5 puan. Görev: Kale ile d8\'e git.','8/8/8/8/3R4/8/8/8 w - - 0 1',['d4d8']],
+['1 · Temel Kurallar','Fil','Fil çapraz gider ve hep aynı renkli karelerde kalır. Değeri: 3 puan. Görev: Fili a7\'ye götür.','8/8/8/8/3B4/8/8/8 w - - 0 1',['d4a7']],
+['1 · Temel Kurallar','At','At "L" şeklinde (2+1) gider ve tek taş olarak diğer taşların üzerinden atlar. Değeri: 3 puan. Görev: Atı e6\'ya götür.','8/8/8/8/3N4/8/8/8 w - - 0 1',['d4e6']],
+['1 · Temel Kurallar','Vezir','Vezir = kale + fil. En güçlü taştır (9 puan). Görev: Vezirle h8\'e git.','8/8/8/8/3Q4/8/8/8 w - - 0 1',['d4h8']],
+['1 · Temel Kurallar','Şah','Şah her yöne 1 kare gider. En değerli taştır: şah kaybedilirse oyun biter. Şah tehdit altındaki bir kareye gidemez. Görev: Şahı e5\'e götür.','8/8/8/8/3K4/8/8/8 w - - 0 1',['d4e5']],
+['2 · Özel Hamleler','Rok (Castling)','Şah ve kale aynı anda hamle yapar: şah 2 kare kaleye doğru gider, kale şahın üzerinden atlar. Şart: ikisi de hiç oynamamış, aradaki kareler boş, şah şahta değil ve geçtiği karelerde tehdit yok. Görev: Kısa rok yap (şahı g1\'e götür).','r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1',['e1g1']],
+['2 · Özel Hamleler','En Passant','Rakip piyon 2 kare ilerleyip yanımızdan geçerse, sanki 1 kare gitmiş gibi hemen ertesi hamlede yiyebiliriz. Sadece o an mümkündür! Görev: e5 piyonuyla d6\'ya "geçerken al".','4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1',['e5d6']],
+['2 · Özel Hamleler','Piyon Terfisi','Piyon son kareye ulaşınca vezir, kale, fil veya ata dönüşür (genelde vezir). Görev: a7 piyonunu a8\'e ilerlet ve vezir yap.','8/P6k/8/8/8/8/8/K7 w - - 0 1',['a7a8']],
+['3 · Oyunun Sonu Kuralları','Şah ve Mat','Şah tehdit altındaysa buna "şah" denir. Kurtulmanın yolu yoksa "MAT"tır ve oyun biter. Görev: Siyah şah kendi piyonlarıyla sıkışmış. Kaleyle tek hamlede mat et.','6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1',['a1a8']],
+['3 · Oyunun Sonu Kuralları','Pat ve Beraberlik','Hamle sırası gelen oyuncunun yasal hamlesi yoksa ve şah tehdit altında değilse "PAT"tır: oyun beraberlik biter. Diğer beraberlikler: aynı pozisyonun 3 kez tekrarı, 50 hamle kuralı, yetersiz materyal. Tahtada siyahın hamle sırası: tek bir hamlesi bile yok!','7k/5Q2/6K1/8/8/8/8/8 b - - 0 1',[]],
+['4 · Taktikler','At Çatalı (Fork)','Tek taşla iki hedefi aynı anda tehdit etmek. Atlar çatal için idealdir. Görev: Atı şahı ve kaleyi aynı anda tehdit edecek kareye götür.','2r1k3/8/8/8/3N4/8/8/4K3 w - - 0 1',['d4d6']],
+['4 · Taktikler','Çivi (Pin)','Bir taş hareket ederse arkasındaki daha değerli taş (şah) açıkta kalıyorsa o taş "çivilenmiştir" ve yasal olarak hareket edemez. Siyah atı e7 çivili: taşa tıkla, hiç hamlesi yok!','4k3/4n3/8/8/8/8/8/4RK2 b - - 0 1',[]],
+['4 · Taktikler','Açılış İlkeleri','1) Merkezi (e4,d4,e5,d5) ele geçir. 2) Taşlarını geliştir (at ve fil). 3) Erken rok yap. 4) Aynı taşla tekrar tekrar oynama, 5) Erken vezir çıkarma. Görev: Merkeze piyon sür (e4 veya d4).',C.START,['e2e4','d2d4']],
+['5 · Oyun Sonu','Vezirle Mat','Vezir ve şah birlikte çalışır. Vezir kaçış karelerini keser, şah onu korur. Görev: Tek hamlede mat et.','7k/8/5K2/8/8/8/8/6Q1 w - - 0 1',['g1g7']],
+['B','Bulmaca: Çoban Matı','Beyaz oynar ve 1 hamlede mat eder!','r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4',['h5f7']],
+['B','Bulmaca: Arka Sıra Matı','Siyah şah kendi piyonlarının arkasında. Mat et!','6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1',['d1d8']],
+['B','Bulmaca: Boğulma Matı','At ile zarif bir mat: siyahın kendi taşları şahı boğuyor!','6rk/6pp/8/6N1/8/8/8/6K1 w - - 0 1',['g5f7']]
+].map(([g,t,x,f,go])=>({g,t,x,f,go}));
+let mode='ders',cur=0,S,hist,sel=null,last=null,flip=false,lvl=3,variant='std',me='w',busy=false,done=JSON.parse(localStorage.getItem('sa')||'{}');
+function msg(t,c){$('msg').className=c||'';$('msg').textContent=t}
+function drawList(){const P=mode=='bulmaca';let h='',g='';L.forEach((l,i)=>{if(P!=(l.g=='B'))return;if(l.g!=g&&!P){g=l.g;h+=`<h4>${g}</h4>`}h+=`<div class="it ${i==cur?'on':''}" onclick="openL(${i})">${done[i]?'✅':'○'} ${l.t}</div>`});
+$('list').innerHTML=mode=='oyna'?'<h4>Bilgisayara karşı</h4><p>Seviye seç ve oyna. Kurallar tam: rok, en passant, terfi, pat, 3 tekrar, 50 hamle.</p>':h}
+function openL(i){cur=i;const l=L[i];S=C.parse(l.f);hist=[S];sel=null;last=null;busy=false;flip=false;
+$('info').innerHTML=`<h2>${l.t}</h2><p>${l.x}</p><p style="color:var(--mut)">${l.go.length?'':FREE}</p><div class="row"><button class="b" onclick="openL(${i})">↺ Yeniden</button>${L[i+1]&&(L[i+1].g=='B')==(l.g=='B')?`<button class="b pri" onclick="openL(${i+1})">Sonraki →</button>`:''}</div>`;
+drawList();draw();if(!l.go.length&&!C.legal(S).length)msg(C.inCheck(S)?'Mat!':'Hamle yok → PAT! Beraberlik.','bad');else msg('')}
+function setMode(m){mode=m;['ders','bulmaca','oyna'].forEach(x=>$('n-'+x).classList.toggle('on',x==m));
+if(m=='oyna')newGame();else openL(L.findIndex(l=>(l.g=='B')==(m=='bulmaca')))}
+['ders','bulmaca','oyna'].forEach(m=>$('n-'+m).onclick=()=>setMode(m));
+function draw(){const B=$('board');B.innerHTML='';const ms=sel!=null?C.legal(S).filter(m=>m.f==sel):[];const ck=!['anti','racing'].includes(S.v)&&C.inCheck(S)?S.b.indexOf(S.t=='w'?'K':'k'):-1;
+for(let r=0;r<8;r++)for(let c=0;c<8;c++){const i=flip?63-(r*8+c):r*8+c,p=S.b[i],d=document.createElement('div');
+d.className='s '+(((i>>3)+(i&7))%2?'d':'l')+(i==sel?' sel':'')+(last&&(i==last.f||i==last.t)?' last':'')+(i==ck?' chk':'');
+if(ms.some(m=>m.t==i))d.classList.add('mv'),p&&d.classList.add('cp');
+if(p)d.innerHTML=`<span class="${C.isW(p)?'w':'k'}">${G[p.toUpperCase()]}</span>`;
+if(c==0)d.innerHTML+=`<i class="co r">${8-(i>>3)}</i>`;if(r==7)d.innerHTML+=`<i class="co f">${'abcdefgh'[i&7]}</i>`;
+d.onclick=()=>click(i);B.appendChild(d)}}
+function click(i){if(busy)return;if(mode=='oyna'&&S.t!=me)return;const ms=C.legal(S).filter(m=>m.f==sel&&m.t==i);
+if(sel!=null&&ms.length){if(ms[0].p){const P=$('promo');P.style.display='flex';P.firstElementChild.innerHTML=ms.map(m=>`<button data-p="${m.p}">${G[m.p.toUpperCase()]}</button>`).join('');
+P.querySelectorAll('button').forEach(b=>b.onclick=()=>{P.style.display='none';play(ms.find(m=>m.p==b.dataset.p))});return}play(ms[0]);return}
+const p=S.b[i];sel=p&&C.isW(p)==(S.t=='w')?i:null;draw()}
+function play(m){const l=L[cur];sel=null;
+if(mode!='oyna'){const key=C.nm(m.f)+C.nm(m.t);
+if(l.go.length&&!l.go.includes(key)){msg('Bu doğru hamle değil, tekrar dene! 🤔','bad');draw();return}
+const t=S.t;S=C.make(S,m);last=m;if(l.go.length){draw();msg('🎉 Harika! Doğru!','ok');done[cur]=1;localStorage.setItem('sa',JSON.stringify(done));drawList();busy=true;
+const st=C.status(S);if(st=='mat')msg('🎉 Şah mat! Mükemmel!','ok');return}
+S.t=t;S.e=-1;draw();return}
+S=C.make(S,m);hist.push(S);last=m;after()}
+const VN={std:'Klasik Satranç',koth:'Tepe Kralı (King of the Hill)','3c':'Üç Şah (Three-check)',anti:'Kaybetme Satrancı (Antichess)',atomic:'Atom Satrancı',racing:'Yarışan Şahlar (Racing Kings)',horde:'Sürü (Horde)','960':'Fischer Rastgele (Chess960)'};
+const VD={std:'Klasik kurallar: rakibin şahını mat et.',koth:'Şahını tahtanın ortasındaki 4 kareden (d4, e4, d5, e5) birine götüren anında kazanır. Mat da geçerlidir.','3c':'Rakibine 3 kez şah çeken kazanır. Mat da geçerlidir.',anti:'Amaç tüm taşlarını kaybetmek (veya pat olmak)! Yeme zorunludur, şah sıradan bir taştır, şah/mat/rok yoktur.',atomic:'Her yeme patlama yaratır: yiyen taş, yenen taş ve çevresindeki piyon dışı tüm taşlar yok olur. Rakip şahı patlatan kazanır. Şah yiyemez.',racing:'Şah çekmek yasaktır! Şahını önce 8. sıraya ulaştıran kazanır (beyaz önce giderse siyaha son bir hamle hakkı verilir).',horde:'Beyazın 36 piyonu var ve şahı yok; siyah normal dizilimle oynar. Beyaz tüm taşları yenirse siyah, siyah mat olursa beyaz kazanır.','960':'Arka sıradaki taşlar rastgele dizilir (fillerin renkleri farklı). Bu sürümde rok yoktur.'};
+function after(){draw();const st=C.status(S,hist);
+const T={mat:'Şah mat! '+(S.t=='w'?'Siyah':'Beyaz')+' kazandı 🏆',pat:'Pat! Beraberlik.','50':'50 hamle kuralı: beraberlik.',yetersiz:'Beraberlik.',tekrar:'3 kez tekrar: beraberlik.',sah:S.v=='3c'?'Şah! (Beyaz '+S.k.w+' · Siyah '+S.k.b+')':'Şah!'};
+if(st.startsWith('win:'))T[st]=(st[4]=='w'?'Beyaz':'Siyah')+' kazandı 🏆';
+msg(st=='devam'?(S.t==me?'Sıra sende':''):T[st],st=='sah'?'bad':'ok');
+if(st!='devam'&&st!='sah'){busy=true;return}
+if(S.t!=me){busy=true;msg('Bilgisayar düşünüyor… 🤔');setTimeout(()=>{const m=C.best(S,lvl);S=C.make(S,m);hist.push(S);last=m;busy=false;after()},60)}}
+function newGame(){S=C.parse(C.startFen(variant),variant);hist=[S];sel=null;last=null;busy=false;flip=me=='b';
+$('info').innerHTML=`<h2>Bilgisayara Karşı</h2><div class="row"><label>Oyun <select id="vr">${Object.keys(VN).map(k=>`<option value="${k}" ${k==variant?'selected':''}>${VN[k]}</option>`).join('')}</select></label></div><p id="vd">${VD[variant]}</p>
+<div class="row"><label>Seviye <select id="lv">${['Çaylak','Başlangıç','Orta','İleri','Usta'].map((n,i)=>`<option value="${i+1}" ${i+1==lvl?'selected':''}>${i+1} · ${n}</option>`).join('')}</select></label>
+<label>Renk <select id="cl"><option value="w">Beyaz</option><option value="b" ${me=='b'?'selected':''}>Siyah</option></select></label></div>
+<div class="row"><button class="b pri" id="ng">▶ Başlat</button><button class="b" id="un">↶ Geri Al</button><button class="b" id="hn">💡 İpucu</button></div><p>Güçlü seviyeler birkaç saniye düşünebilir. Seçimi değiştirdikten sonra ▶ Başlat'a bas.</p>`;
+$('vr').onchange=()=>$('vd').textContent=VD[$('vr').value];
+$('ng').onclick=()=>{variant=$('vr').value;lvl=+$('lv').value;me=$('cl').value;newGame()};
+$('un').onclick=()=>{if(busy&&S.t!=me)return;if(hist.length>2){hist.length-=2;S=hist[hist.length-1];last=null;busy=false;draw();msg('')}};
+$('hn').onclick=()=>{if(S.t!=me||busy)return;const m=C.best(S,4);msg('💡 İpucu: '+C.nm(m.f)+' → '+C.nm(m.t));sel=m.f;draw()};
+drawList();draw();msg('Sıra sende');if(S.t!=me)after()}
+function go(m,v){$('hero').style.display='none';if(v)variant=v;setMode(m)}
+setMode('ders');
+</script></body></html>
