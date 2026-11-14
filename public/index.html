@@ -10,8 +10,8 @@ main{display:grid;grid-template-columns:260px minmax(300px,560px) 1fr;gap:20px;p
 .card{background:var(--card);border:1px solid #2d3358;border-radius:16px;padding:16px}
 #list{max-height:78vh;overflow:auto}#list h4{margin:14px 0 6px;color:var(--ac);font-size:13px;text-transform:uppercase;letter-spacing:.06em}
 #list div.it{padding:8px 10px;border-radius:8px;cursor:pointer;font-size:14px;color:var(--mut)}#list div.it:hover,#list div.it.on{background:#252b4d;color:var(--ink)}
-#board{display:grid;grid-template-columns:repeat(8,1fr);aspect-ratio:1;border-radius:10px;overflow:hidden;box-shadow:0 20px 50px #0009;user-select:none}
-.s{position:relative;display:flex;align-items:center;justify-content:center;font-size:min(8.2vw,52px);cursor:pointer;line-height:1}
+#board{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));width:100%;aspect-ratio:1;container-type:inline-size;border-radius:10px;overflow:hidden;box-shadow:0 20px 50px #0009;user-select:none}
+.s{position:relative;display:flex;align-items:center;justify-content:center;font-size:min(8.2vw,52px);font-size:9.6cqw;cursor:pointer;line-height:1;min-width:0;min-height:0;overflow:hidden;aspect-ratio:1/1;font-family:'Segoe UI Symbol','Noto Sans Symbols 2','DejaVu Sans',Arial,sans-serif}
 .s.l{background:var(--lt)}.s.d{background:var(--dk)}.s.sel{background:#f5d76e!important}.s.last{box-shadow:inset 0 0 0 100px #f5b94255}.s.chk{background:#f87171!important}
 .s.mv::after{content:"";width:28%;height:28%;border-radius:50%;background:#0006;position:absolute}.s.mv.cp::after{width:86%;height:86%;background:none;border:5px solid #0006}
 .w{color:#fff;text-shadow:0 0 2px #000,0 0 2px #000,0 1px 3px #000}.k{color:#1a1a22;text-shadow:0 0 1px #fff8}
@@ -31,7 +31,7 @@ select{background:#0f1220;color:var(--ink);border:1px solid #2d3358;padding:8px;
 <div id="promo"><div></div></div>
 <script src="engine.js"></script><script>
 const C=Chess,$=id=>document.getElementById(id);
-const G={K:'♚',Q:'♛',R:'♜',B:'♝',N:'♞',P:'♟'};
+const G={K:'♚\uFE0E',Q:'♛\uFE0E',R:'♜\uFE0E',B:'♝\uFE0E',N:'♞\uFE0E',P:'♟\uFE0E'};
 const FREE='Taşa tıkla, gidebileceği kareleri gör; istediğin gibi dene (tahta her hamleden sonra sıranı korur).';
 const L=[
 ['1 · Temel Kurallar','Tahta ve Dizilim','Satranç 8×8 tahtada, her oyuncunun 16 taşıyla oynanır: 8 piyon, 2 kale, 2 at, 2 fil, 1 vezir, 1 şah. Beyaz her zaman ilk oynar. Her oyuncunun sağ alt köşesi açık (beyaz) renkli kare olmalı. Vezir kendi rengindeki kareye durur.',C.START,[]],
